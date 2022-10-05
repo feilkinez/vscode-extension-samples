@@ -1,4 +1,5 @@
-out
+client/out
+server/out/server.js.map
 node_modules
 client/server
 .vscode-test
