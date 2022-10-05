@@ -68,8 +68,9 @@ connection.onDidChangeConfiguration(change => {
         globalSettings = ((change.settings.languageServerExample || defaultSettings));
     }
     // Revalidate all open text documents
-    documents.all().forEach(validateDivToButton);
-    documents.all().forEach(validateButtonAria);
+    documents.all().forEach(validateTextDocument);
+    //documents.all().forEach(validateDivToButton);
+    //documents.all().forEach(validateButtonAria);
 });
 function getDocumentSettings(resource) {
     if (!hasConfigurationCapability) {
@@ -92,80 +93,102 @@ documents.onDidClose(e => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(change => {
-    validateDivToButton(change.document);
-    validateButtonAria(change.document);
+    validateTextDocument(change.document);
+    //validateDivToButton(change.document);
+    //validateButtonAria(change.document);
 });
-async function validateDivToButton(textDocument) {
-    // In this simple example we get the settings for every validate run.
-    const settings = await getDocumentSettings(textDocument.uri);
-    // The validator creates diagnostics for all uppercase words length 2 and more
-    const text = textDocument.getText();
-    const pattern = RegExp("<div class=\"button\">");
+
+async function validateTextDocument(textDocument) {
+	// In this simple example we get the settings for every validate run.
+	const settings = await getDocumentSettings(textDocument.uri);
+
+	// The validator creates diagnostics for all uppercase words length 2 and more
+	const text = textDocument.getText();
+	//const pattern = /\b[A-Z]{2,}\b/g;
+    const pattern1 = /(?:<button>)+/g;
     let m;
-    let problems = 0;
-    const diagnostics = [];
-    while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
+
+	let problems = 0;
+	const diagnostics = [];
+	while ((m = pattern1.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length)
+			},
+			message: `For user interface components with labels that include text or images of text, the name contains the text that is presented visually.`,
+			source: 'ex'
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range)
+					},
+					message: 'Add label. Change to <button aria-label=\"(label here)\">'
+				}
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+    const pattern2 = /\b[A-Z]{2,}\b/g;
+    while ((m = pattern2.exec(text)) && problems < settings.maxNumberOfProblems) {
         problems++;
-        const diagnostic = {
-            severity: node_1.DiagnosticSeverity.Warning,
-            range: {
-                start: textDocument.positionAt(m.index),
-                end: textDocument.positionAt(m.index + m[0].length)
-            },
-            message: `${m[0]}. All functionality should be operable with a keyboard.`,
-            source: 'ex'
-        };
-        if (hasDiagnosticRelatedInformationCapability) {
-            diagnostic.relatedInformation = [
-                {
-                    location: {
-                        uri: textDocument.uri,
-                        range: Object.assign({}, diagnostic.range)
-                    },
-                    message: 'Please change this to <button></button>'
-                }
-            ];
-        }
-        diagnostics.push(diagnostic);
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length)
+			},
+			message: `${m[0]} is all uppercase.`,
+			source: 'ex'
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range)
+					},
+					message: 'Spelling matters'
+				}
+			];
+		}
+		diagnostics.push(diagnostic);
     }
-    // Send the computed diagnostics to VSCode.
-    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
-async function validateButtonAria(textDocument) {
-    // In this simple example we get the settings for every validate run.
-    const settings = await getDocumentSettings(textDocument.uri);
-    // The validator creates diagnostics for all uppercase words length 2 and more
-    const text = textDocument.getText();
-    const pattern = RegExp("<button>");
-    let m;
-    let problems = 0;
-    const diagnostics = [];
-    while ((m = pattern.exec(text)) && problems < settings.maxNumberOfProblems) {
+
+    const pattern3 = /(?:<div class=\"button\">)+/g;
+    while ((m = pattern3.exec(text)) && problems < settings.maxNumberOfProblems) {
         problems++;
-        const diagnostic = {
-            severity: node_1.DiagnosticSeverity.Warning,
-            range: {
-                start: textDocument.positionAt(m.index),
-                end: textDocument.positionAt(m.index + m[0].length)
-            },
-            message: `${m[0]}. For user interface components with labels that include text or images of text, the name contains the text that is presented visually.`,
-            source: 'ex'
-        };
-        if (hasDiagnosticRelatedInformationCapability) {
-            diagnostic.relatedInformation = [
-                {
-                    location: {
-                        uri: textDocument.uri,
-                        range: Object.assign({}, diagnostic.range)
-                    },
-                    message: 'Add label. Change to <button aria-label=\"(label here)\">'
-                }
-            ];
-        }
-        diagnostics.push(diagnostic);
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length)
+			},
+			message: `All functionality should be operable with a keyboard.`,
+			source: 'ex'
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range)
+					},
+					message: 'Please change this to <button></button>'
+				}
+			];
+		}
+		diagnostics.push(diagnostic);
     }
-    // Send the computed diagnostics to VSCode.
-    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+
+	// Send the computed diagnostics to VSCode.
+	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
 connection.onDidChangeWatchedFiles(_change => {
     // Monitored files have change in VSCode
