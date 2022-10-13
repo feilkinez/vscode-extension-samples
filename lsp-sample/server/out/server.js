@@ -76,8 +76,6 @@ connection.onDidChangeConfiguration((change) => {
 	}
 	// Revalidate all open text documents
 	documents.all().forEach(validateTextDocument);
-	//documents.all().forEach(validateDivToButton);
-	//documents.all().forEach(validateButtonAria);
 });
 function getDocumentSettings(resource) {
 	if (!hasConfigurationCapability) {
@@ -101,18 +99,15 @@ documents.onDidClose((e) => {
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent((change) => {
 	validateTextDocument(change.document);
-	//validateDivToButton(change.document);
-	//validateButtonAria(change.document);
 });
 
 async function validateTextDocument(textDocument) {
 	// In this simple example we get the settings for every validate run.
 	const settings = await getDocumentSettings(textDocument.uri);
-
-	// The validator creates diagnostics for all uppercase words length 2 and more
 	const text = textDocument.getText();
-	//const pattern = /\b[A-Z]{2,}\b/g;
-	const pattern1 = /(?:<button>)+/g;
+
+	// <button> must have aria-label attribute
+	const pattern1 = /(<button(?!.*?aria-label=(['"]).*?\2)[^>]*)(>)/g;
 	let m;
 
 	let problems = 0;
@@ -125,8 +120,8 @@ async function validateTextDocument(textDocument) {
 				start: textDocument.positionAt(m.index),
 				end: textDocument.positionAt(m.index + m[0].length),
 			},
-			message: `For user interface components with labels that include text or images of text, the name contains the text that is presented visually.`,
-			source: 'ex',
+			message: `Button lacks a label.`,
+			source: 'WCAG 2.1',
 		};
 		if (hasDiagnosticRelatedInformationCapability) {
 			diagnostic.relatedInformation = [
@@ -135,14 +130,16 @@ async function validateTextDocument(textDocument) {
 						uri: textDocument.uri,
 						range: Object.assign({}, diagnostic.range),
 					},
-					message: 'Add label. Change to <button aria-label="(label here)">',
+					message:
+						'Kindly add a label to your button. Adding `aria-label=""` within the button as an attribute will suffice (ex: <button aria-label=""></button>)',
 				},
 			];
 		}
 		diagnostics.push(diagnostic);
 	}
 
-	const pattern2 = /\b[A-Z]{2,}\b/g;
+	// if a <div> has the class="button" attribute
+	const pattern2 = /(<div(?=.*?class="button")[^>]*)(>)/g;
 	while ((m = pattern2.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -151,34 +148,8 @@ async function validateTextDocument(textDocument) {
 				start: textDocument.positionAt(m.index),
 				end: textDocument.positionAt(m.index + m[0].length),
 			},
-			message: `${m[0]} is all uppercase.`,
-			source: 'ex',
-		};
-		if (hasDiagnosticRelatedInformationCapability) {
-			diagnostic.relatedInformation = [
-				{
-					location: {
-						uri: textDocument.uri,
-						range: Object.assign({}, diagnostic.range),
-					},
-					message: 'Spelling matters',
-				},
-			];
-		}
-		diagnostics.push(diagnostic);
-	}
-
-	const pattern3 = /(?:<div class=\"button\">)+/g;
-	while ((m = pattern3.exec(text)) && problems < settings.maxNumberOfProblems) {
-		problems++;
-		const diagnostic = {
-			severity: node_1.DiagnosticSeverity.Warning,
-			range: {
-				start: textDocument.positionAt(m.index),
-				end: textDocument.positionAt(m.index + m[0].length),
-			},
-			message: `All functionality should be operable with a keyboard.`,
-			source: 'ex',
+			message: `All functionality should be operable with a keyboard. Choose between the two options.`,
+			source: 'WCAG 2.1',
 		};
 		if (hasDiagnosticRelatedInformationCapability) {
 			diagnostic.relatedInformation = [
@@ -188,6 +159,67 @@ async function validateTextDocument(textDocument) {
 						range: Object.assign({}, diagnostic.range),
 					},
 					message: 'Please change this to <button></button>',
+				},
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message:
+						'Please change the `class` attribute to `role` and add `tabindex="0"` (ex: <div role="button" tabindex="0"></div>)',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+	// <img> must have alt attribute
+	const pattern3 = /(<img(?!.*?alt=(['"]).*?\2)[^>]*)(>)/g;
+	while ((m = pattern3.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `All non-text content such as images, icons, charts, etc must have alternate text that describes the content.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message: 'Please add an `alt` attribute (ex: <img alt=""/>)',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+	const pattern4 = /(<input(?!.*?name=(['"]).*?\2)[^>]*)(>)/g;
+	while ((m = pattern4.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Headings and labels should be descriptive.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message: 'Please add a `name` attribute (ex: <input name=""/>)',
 				},
 			];
 		}
