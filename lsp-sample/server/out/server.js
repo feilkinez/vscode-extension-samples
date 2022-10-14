@@ -200,6 +200,7 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
+	// Input must have name attribute
 	const pattern4 = /(<input(?!.*?name=(['"]).*?\2)[^>]*)(>)/g;
 	while ((m = pattern4.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
