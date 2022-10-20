@@ -174,7 +174,7 @@ async function validateTextDocument(textDocument) {
 	}
 
 	// <img> must have alt attribute
-	const pattern3 = /(span {[\s\S].*?)(font-weight: bold;.*?)[^>]}*/g;
+	const pattern3 = /(<img(?!.*?alt=(['"]).*?\2)[^>]*)(>)/g;
 	while ((m = pattern3.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -227,7 +227,7 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
-	// if a span has font-weight: bold in it - NOT WORKING YET
+	// if a span has font-weight: bold in it - NOT WORKING
 	const pattern5 = /(span {[\s\S].*?)(font-weight: bold;.*?)[\s\S](})/g;
 	while ((m = pattern5.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
