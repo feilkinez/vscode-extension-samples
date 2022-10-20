@@ -227,7 +227,7 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
-	// if a span has font-weight: bold in it
+	// if a span has font-weight: bold in it - NOT WORKING YET
 	const pattern5 = /(span {[\s\S].*?)(font-weight: bold;.*?)[\s\S](})/g;
 	while ((m = pattern5.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
