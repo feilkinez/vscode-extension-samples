@@ -174,7 +174,7 @@ async function validateTextDocument(textDocument) {
 	}
 
 	// <img> must have alt attribute
-	const pattern3 = /(<img(?!.*?alt=(['"]).*?\2)[^>]*)(>)/g;
+	const pattern3 = /(span {[\s\S].*?)(font-weight: bold;.*?)[^>]}*/g;
 	while ((m = pattern3.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -221,6 +221,34 @@ async function validateTextDocument(textDocument) {
 						range: Object.assign({}, diagnostic.range),
 					},
 					message: 'Please add a `name` attribute (ex: <input name=""/>)',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+	// if a span has font-weight: bold in it
+	const pattern5 = /(span {[\s\S].*?)(font-weight: bold;.*?)[\s\S](})/g;
+	while ((m = pattern5.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Span has a 'font' style. Try making it simpler and more intuitive.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message:
+						'Remove this from the css. Use the appropriate HTML tag instead of <span></span>.',
 				},
 			];
 		}
