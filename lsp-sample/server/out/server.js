@@ -106,7 +106,7 @@ async function validateTextDocument(textDocument) {
 	const settings = await getDocumentSettings(textDocument.uri);
 	const text = textDocument.getText();
 
-	// <button> must have aria-label attribute
+	// <button> must have `aria-label` attribute
 	const pattern1 = /(<button(?!.*?aria-label=(['"]).*?\2)[^>]*)(>)/g;
 	let m;
 
@@ -138,7 +138,7 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
-	// if a <div> has the class="button" attribute
+	// if a <div> has the `class="button"` attribute
 	const pattern2 = /(<div(?=.*?class="button")[^>]*)(>)/g;
 	while ((m = pattern2.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
@@ -173,7 +173,7 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
-	// <img> must have alt attribute
+	// <img> must have `alt` attribute
 	const pattern3 = /(<img(?!.*?alt=(['"]).*?\2)[^>]*)(>)/g;
 	while ((m = pattern3.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
@@ -200,7 +200,7 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
-	// Input must have name attribute
+	// Input must have `name` attribute
 	const pattern4 = /(<input(?!.*?name=(['"]).*?\2)[^>]*)(>)/g;
 	while ((m = pattern4.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
@@ -227,8 +227,8 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
-	// if a span has font-weight: bold in it - NOT WORKING
-	const pattern5 = /(span {[\s\S].*?)(font-weight: bold;.*?)[\s\S](})/g;
+	// HTML must have `lang` attribute
+	const pattern5 = /(<html(?!.*?lang=(['"]).*?\2)[^>]*)(>)/g;
 	while ((m = pattern5.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -237,7 +237,7 @@ async function validateTextDocument(textDocument) {
 				start: textDocument.positionAt(m.index),
 				end: textDocument.positionAt(m.index + m[0].length),
 			},
-			message: `Span has a 'font' style. Try making it simpler and more intuitive.`,
+			message: `You must programatically define the primary language of each page.`,
 			source: 'WCAG 2.1',
 		};
 		if (hasDiagnosticRelatedInformationCapability) {
@@ -247,13 +247,67 @@ async function validateTextDocument(textDocument) {
 						uri: textDocument.uri,
 						range: Object.assign({}, diagnostic.range),
 					},
-					message:
-						'Remove this from the css. Use the appropriate HTML tag instead of <span></span>.',
+					message: 'Add a `lang` attribute to the HTML tag. (ex: <html lang="en"></html>)',
 				},
 			];
 		}
 		diagnostics.push(diagnostic);
 	}
+
+	// Proper <div> and <p> nesting must be followed
+	const pattern6 = /(?=(<p>))(\w|\W)*(?<=<\/p>)/gm;
+	while ((m = pattern6.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Is there a <div> inside <p>? This is improper tag nesting.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message: 'Change the <p></p> to <div></div> and vice versa.',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+	// if a span has font-weight: bold in it - NOT WORKING
+	// const patternN = /(span {[\s\S].*?)(font-weight: bold;.*?)[\s\S](})/g;
+	// while ((m = patternN.exec(text)) && problems < settings.maxNumberOfProblems) {
+	// 	problems++;
+	// 	const diagnostic = {
+	// 		severity: node_1.DiagnosticSeverity.Warning,
+	// 		range: {
+	// 			start: textDocument.positionAt(m.index),
+	// 			end: textDocument.positionAt(m.index + m[0].length),
+	// 		},
+	// 		message: `Span has a 'font' style. Try making it simpler and more intuitive.`,
+	// 		source: 'WCAG 2.1',
+	// 	};
+	// 	if (hasDiagnosticRelatedInformationCapability) {
+	// 		diagnostic.relatedInformation = [
+	// 			{
+	// 				location: {
+	// 					uri: textDocument.uri,
+	// 					range: Object.assign({}, diagnostic.range),
+	// 				},
+	// 				message:
+	// 					'Remove this from the css. Use the appropriate HTML tag instead of <span></span>.',
+	// 			},
+	// 		];
+	// 	}
+	// 	diagnostics.push(diagnostic);
+	// }
 
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });

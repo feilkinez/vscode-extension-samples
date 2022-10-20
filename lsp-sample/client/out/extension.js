@@ -27,7 +27,7 @@ function activate(context) {
 	};
 	// Options to control the language client
 	const clientOptions = {
-		// Register the server for javascript documents
+		// Register the server for HTML, JS, and CSS documents
 		documentSelector: [
 			{ scheme: 'file', language: 'html' },
 			{ scheme: 'file', language: 'javascript' },
