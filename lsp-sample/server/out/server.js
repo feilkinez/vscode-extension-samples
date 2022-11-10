@@ -283,7 +283,7 @@ async function validateTextDocument(textDocument) {
 	}
 
 	// if width uses px
-	const pattern7= /(width:.*?px.*?)/g;
+	const pattern7 = /(width:.*?px.*?)/g;
 	while ((m = pattern7.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -311,7 +311,7 @@ async function validateTextDocument(textDocument) {
 	}
 
 	// if font size uses px
-	const pattern8= /((font-size:.*?px.*?))/g;
+	const pattern8 = /((font-size:.*?px.*?))/g;
 	while ((m = pattern8.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -338,35 +338,61 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
+	// Proper <div> and <p> nesting must be followed
+	const pattern9 = /(<p>[\s\S\n]+?.*?)(<div>.*?<\/div>)[\s\S\n]+?(<\/p>)/g;
+	while ((m = pattern9.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Is there a <div> inside <p>? This is improper tag nesting.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message: 'Swap. <p></p> must be INSIDE <div></div>.',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
 
-
-
-	// // Proper <div> and <p> nesting must be followed
-	// const patternN = /(?=(<p>))(\w|\W)*(?<=<\/p>)/gm;
-	// while ((m = pattern6.exec(text)) && problems < settings.maxNumberOfProblems) {
-	// 	problems++;
-	// 	const diagnostic = {
-	// 		severity: node_1.DiagnosticSeverity.Warning,
-	// 		range: {
-	// 			start: textDocument.positionAt(m.index),
-	// 			end: textDocument.positionAt(m.index + m[0].length),
-	// 		},
-	// 		message: `Is there a <div> inside <p>? This is improper tag nesting.`,
-	// 		source: 'WCAG 2.1',
-	// 	};
-	// 	if (hasDiagnosticRelatedInformationCapability) {
-	// 		diagnostic.relatedInformation = [
-	// 			{
-	// 				location: {
-	// 					uri: textDocument.uri,
-	// 					range: Object.assign({}, diagnostic.range),
-	// 				},
-	// 				message: 'Change the <p></p> to <div></div> and vice versa.',
-	// 			},
-	// 		];
-	// 	}
-	// 	diagnostics.push(diagnostic);
-	// }
+	// Proper opening/closing tag nesting (button, h1-6, p, b, i, u)
+	const pattern10 =
+		/<(button|h1|h2|h3|h4|h5|h6|p|b|i|u)>.*?[\s\n]+?<(\/button|\/h1|\/h2|\/h3|\/h4|\/h5|\/h6|\/p|\/b|\/i|\/u)>/g;
+	while ((m = pattern10.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Attribute closing tag nesting is incorrect.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message:
+						'Have your attributes at the same line rather than putting the closing attribute at the next line.',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
 
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
