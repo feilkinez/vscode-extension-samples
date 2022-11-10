@@ -282,6 +282,65 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
+	// if width uses px
+	const pattern7= /({[\s\S\n].*?)(width:.*?px.*?)[\s\S\n]+?(})/g;
+	while ((m = pattern7.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Content should adapt to different screen sizes and display orientation.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message:
+						'If this is your main width, opt to change it into a percentage. Add a media query to cater to other screen sizes.',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+	// if font size uses px
+	const pattern8= /({[\s\S\n].*?)(font-size:.*?px.*?)[\s\S\n]+?(})/g;
+	while ((m = pattern8.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Text content should be scalable to 200% without any loss of information or functionality.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message:
+						'Please change your font size unit from px to em to scale the content effectively.',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+
+
+
 	// // Proper <div> and <p> nesting must be followed
 	// const patternN = /(?=(<p>))(\w|\W)*(?<=<\/p>)/gm;
 	// while ((m = pattern6.exec(text)) && problems < settings.maxNumberOfProblems) {
