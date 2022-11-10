@@ -367,7 +367,7 @@ async function validateTextDocument(textDocument) {
 
 	// Proper opening/closing tag nesting (button, h1-6, p, b, i, u)
 	const pattern10 =
-		/<(button|h1|h2|h3|h4|h5|h6|p|b|i|u)>.*?[\s\n]+?<(\/button|\/h1|\/h2|\/h3|\/h4|\/h5|\/h6|\/p|\/b|\/i|\/u)>/g;
+		/<button>.*?[\s\n]+?<\/button>|<h1>.*?[\s\n]+?<\/h1>|<h2>.*?[\s\n]+?<\/h2>|<h3>.*?[\s\n]+?<\/h3>|<h4>.*?[\s\n]+?<\/h4>|<h5>.*?[\s\n]+?<\/h5>|<h6>.*?[\s\n]+?<\/h6>|<p>.*?[\s\n]+?<\/p>|<b>.*?[\s\n]+?<\/b>|<u>.*?[\s\n]+?<\/u>|<i>.*?[\s\n]+?<\/i>/g;
 	while ((m = pattern10.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
