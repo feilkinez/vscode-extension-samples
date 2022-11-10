@@ -254,8 +254,8 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
-	// Proper <div> and <p> nesting must be followed
-	const pattern6 = /(?=(<p>))(\w|\W)*(?<=<\/p>)/gm;
+	// if a span has a font attribute
+	const pattern6 = /(span {[\s\S\n]+?.*?)(font-.*?)[\s\S\n]+?(})/g;
 	while ((m = pattern6.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -264,7 +264,7 @@ async function validateTextDocument(textDocument) {
 				start: textDocument.positionAt(m.index),
 				end: textDocument.positionAt(m.index + m[0].length),
 			},
-			message: `Is there a <div> inside <p>? This is improper tag nesting.`,
+			message: `Span has a 'font' style. Try making it simpler and more intuitive.`,
 			source: 'WCAG 2.1',
 		};
 		if (hasDiagnosticRelatedInformationCapability) {
@@ -274,16 +274,17 @@ async function validateTextDocument(textDocument) {
 						uri: textDocument.uri,
 						range: Object.assign({}, diagnostic.range),
 					},
-					message: 'Change the <p></p> to <div></div> and vice versa.',
+					message:
+						'Remove this from the css. Use the appropriate HTML tag instead of <span></span>.',
 				},
 			];
 		}
 		diagnostics.push(diagnostic);
 	}
 
-	// if a span has font-weight: bold in it - NOT WORKING
-	// const patternN = /(span {[\s\S].*?)(font-weight: bold;.*?)[\s\S](})/g;
-	// while ((m = patternN.exec(text)) && problems < settings.maxNumberOfProblems) {
+	// // Proper <div> and <p> nesting must be followed
+	// const patternN = /(?=(<p>))(\w|\W)*(?<=<\/p>)/gm;
+	// while ((m = pattern6.exec(text)) && problems < settings.maxNumberOfProblems) {
 	// 	problems++;
 	// 	const diagnostic = {
 	// 		severity: node_1.DiagnosticSeverity.Warning,
@@ -291,7 +292,7 @@ async function validateTextDocument(textDocument) {
 	// 			start: textDocument.positionAt(m.index),
 	// 			end: textDocument.positionAt(m.index + m[0].length),
 	// 		},
-	// 		message: `Span has a 'font' style. Try making it simpler and more intuitive.`,
+	// 		message: `Is there a <div> inside <p>? This is improper tag nesting.`,
 	// 		source: 'WCAG 2.1',
 	// 	};
 	// 	if (hasDiagnosticRelatedInformationCapability) {
@@ -301,8 +302,7 @@ async function validateTextDocument(textDocument) {
 	// 					uri: textDocument.uri,
 	// 					range: Object.assign({}, diagnostic.range),
 	// 				},
-	// 				message:
-	// 					'Remove this from the css. Use the appropriate HTML tag instead of <span></span>.',
+	// 				message: 'Change the <p></p> to <div></div> and vice versa.',
 	// 			},
 	// 		];
 	// 	}
