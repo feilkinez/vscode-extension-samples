@@ -283,7 +283,7 @@ async function validateTextDocument(textDocument) {
 	}
 
 	// if width uses px
-	const pattern7= /({[\s\S\n].*?)(width:.*?px.*?)[\s\S\n]+?(})/g;
+	const pattern7= /(width:.*?px.*?)/g;
 	while ((m = pattern7.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
@@ -311,7 +311,7 @@ async function validateTextDocument(textDocument) {
 	}
 
 	// if font size uses px
-	const pattern8= /({[\s\S\n].*?)(font-size:.*?px.*?)[\s\S\n]+?(})/g;
+	const pattern8= /((font-size:.*?px.*?))/g;
 	while ((m = pattern8.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
