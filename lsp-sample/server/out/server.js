@@ -423,7 +423,7 @@ async function validateTextDocument(textDocument) {
 
 	// 2.1.1.2 Keyboard
 	const pattern12 = /(<div(?=.*?class="form")[^>]*)(>)/g;
-	while ((m = pattern2.exec(text)) && problems < settings.maxNumberOfProblems) {
+	while ((m = pattern12.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
 			severity: node_1.DiagnosticSeverity.Warning,
@@ -442,7 +442,7 @@ async function validateTextDocument(textDocument) {
 						range: Object.assign({}, diagnostic.range),
 					},
 					message: 'Please change this to <form>',
-				}
+				},
 			];
 		}
 		diagnostics.push(diagnostic);
