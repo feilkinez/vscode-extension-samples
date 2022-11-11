@@ -394,6 +394,60 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
+	// 1.3.5.1 Identify Input Purpose
+	const pattern11 = /(<input(?=.*?type=(['"]).*?\2)[^>]*)(>)/g;
+	while ((m = pattern11.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `Are you using the proper HTML type for input element?`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message: 'Use the appropriate type for input.',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
+	// 2.1.1.2 Keyboard
+	const pattern12 = /(<div(?=.*?class="form")[^>]*)(>)/g;
+	while ((m = pattern2.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `All functionality should be operable with a keyboard. Choose between the two options.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message: 'Please change this to <form>',
+				}
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
