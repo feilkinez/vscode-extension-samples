@@ -34,8 +34,10 @@ function activate(context) {
 			{ scheme: 'file', language: 'css' },
 		],
 		synchronize: {
-			// Notify the server about file changes to 'all' files contained in the workspace
-			fileEvents: vscode_1.workspace.createFileSystemWatcher('**/*'),
+			// Watching the active editor for file changes (source: https://code.visualstudio.com/api/references/vscode-api#workspace.createFileSystemWatcher)
+			fileEvents: vscode_1.workspace.createFileSystemWatcher(
+				new vscode_1.RelativePattern(vscode_1.window.activeTextEditor.document.uri, '*')
+			),
 		},
 	};
 	// Create the language client and start the client.
