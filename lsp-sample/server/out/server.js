@@ -449,7 +449,7 @@ async function validateTextDocument(textDocument) {
 	}
 
 	// focus-visible
-	const pattern13 = /(button:focus-visible ({[\s\S\n]+?.*?)(.*?-color:.*?)[^>])*(})/g;
+	const pattern13 = /([^\r\n,{}]+)(:focus-visible ({[\s\S\n]+?.*?)(.*?-color:.*?)[^>])*(})/g;
 	while ((m = pattern13.exec(text)) && problems < settings.maxNumberOfProblems) {
 		problems++;
 		const diagnostic = {
