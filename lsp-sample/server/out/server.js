@@ -448,6 +448,34 @@ async function validateTextDocument(textDocument) {
 		diagnostics.push(diagnostic);
 	}
 
+	// focus-visible
+	const pattern13 = /(button:focus-visible ({[\s\S\n]+?.*?)(.*?-color:.*?)[^>])*(})/g;
+	while ((m = pattern13.exec(text)) && problems < settings.maxNumberOfProblems) {
+		problems++;
+		const diagnostic = {
+			severity: node_1.DiagnosticSeverity.Warning,
+			range: {
+				start: textDocument.positionAt(m.index),
+				end: textDocument.positionAt(m.index + m[0].length),
+			},
+			message: `All interactive elements should have a clearly visible focus indicator.`,
+			source: 'WCAG 2.1',
+		};
+		if (hasDiagnosticRelatedInformationCapability) {
+			diagnostic.relatedInformation = [
+				{
+					location: {
+						uri: textDocument.uri,
+						range: Object.assign({}, diagnostic.range),
+					},
+					message:
+						'Please use clear focus indicators such as background-color or text-color.',
+				},
+			];
+		}
+		diagnostics.push(diagnostic);
+	}
+
 	// Send the computed diagnostics to VSCode.
 	connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
 }
